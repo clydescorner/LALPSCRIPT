@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>XML Generator</title>
+</head>
+<body>
+  <h1>PASTE LETTER HERE (•‿•) </h1>
+  <form action="/generate_xml" method="post">
+    <textarea name="text_input" rows="10" cols="50"></textarea><br>
+    <input type="submit" value="Generate XML magic">
+  </form>
+  {% if xml_output %}
+  <h2>Generated XML</h2>
+  <textarea rows="20" cols="80">{{ xml_output }}</textarea>
+  {% endif %}
+</body>
+</html>
