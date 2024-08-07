@@ -165,6 +165,7 @@ def process_tag_G2(text, parent_element):
     mappings = {
         "L?": "gen:WRITING_SKILL_L_UNCERTAIN",
         "L": "gen:WRITING_SKILL_L",
+        "LH": "gen:WRITING_SKILL_LH",
         "H?": "gen:WRITING_SKILL_H_UNCERTAIN",
         "H": "gen:WRITING_SKILL_H"
     }
@@ -173,16 +174,18 @@ def process_tag_G2(text, parent_element):
     matched_keys = set()
     
     # First match the longer patterns "L?" and "H?"
-    if "L?" in content:
+    if "LH" in content:
+        matched_keys.add("LH")
+    elif "L?" in content:
         matched_keys.add("L?")
     elif "L" in content:
         matched_keys.add("L")
     
     if "H?" in content:
         matched_keys.add("H?")
-    elif "H" in content:
+    elif "H" in content and "LH" not in content:
         matched_keys.add("H")
-    
+
     # Add the matched keys to the parent element
     for key in matched_keys:
         ET.SubElement(parent_element, "catRef", {"scheme": "gen:LALP_letter_types", "target": mappings[key]})
