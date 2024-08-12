@@ -45,7 +45,10 @@ def create_xml_template(text):
     profileDesc = ET.SubElement(teiHeader, "profileDesc")
     correspDesc = ET.SubElement(profileDesc, "correspDesc")
     correspAction_sent = ET.SubElement(correspDesc, "correspAction", {"type": "sent"})
-    ET.SubElement(correspAction_sent, "persName", {"ref": "", "role": "applicant"})
+    
+    # Process the <ST> tag to set the appropriate role in <persName>
+    process_tag_ST(text, correspAction_sent)
+
     ET.SubElement(correspAction_sent, "settlement", {"ref": ""})
     
     # Extract and format the date for <D> tag
@@ -54,11 +57,15 @@ def create_xml_template(text):
     ET.SubElement(correspAction_sent, "date", {"when": formatted_date, "cert": "", "evidence": ""})
 
     correspAction_received = ET.SubElement(correspDesc, "correspAction", {"type": "received"})
-    ET.SubElement(correspAction_received, "persName", {"ref": "", "role": ""})
+
+    # Process the <RT> tag to set the appropriate role in <persName> for received action
+    process_tag_RT(text, correspAction_received)
+
     ET.SubElement(correspAction_received, "settlement", {"ref": ""})
 
     creation = ET.SubElement(profileDesc, "creation")
     ET.SubElement(creation, "persName", {"role": "author", "ref": "psn:hand_1"})
+
     
     # Implement additional processing based on tag values
     textClass = ET.SubElement(profileDesc, "textClass")
@@ -151,6 +158,38 @@ def extract_tag(tag, text):
     match = re.search(pattern, text)
     return match.group(1) if match else ""
 
+def process_tag_ST(text, parent_element):
+    content = extract_tag('ST', text).lower()
+    
+    # Determine the role based on the content of the ST tag
+    role = ""
+    if "applicant" in content:
+        role = "applicant"
+    elif "other" in content:
+        role = "other"
+    elif "official" in content:
+        role = "official"
+    
+    # Add the <persName> element with the appropriate role
+    if role:
+        ET.SubElement(parent_element, "persName", {"ref": "", "role": role})
+
+def process_tag_RT(text, parent_element):
+    content = extract_tag('RT', text).lower()
+    
+    # Determine the role based on the content of the ST tag
+    role = ""
+    if "applicant" in content:
+        role = "applicant"
+    elif "other" in content:
+        role = "other"
+    elif "official" in content:
+        role = "official"
+    
+    # Add the <persName> element with the appropriate role
+    if role:
+        ET.SubElement(parent_element, "persName", {"ref": "", "role": role})
+        
 def format_date(date_str):
     # Convert "yyyy mm dd" to "yyyy-mm-dd"
     return date_str.replace(" ", "-")
