@@ -93,16 +93,13 @@ def create_xml_template(text):
     ET.SubElement(body, "div", {"type": "address"})
     div_letter = ET.SubElement(body, "div", {"type": "letter", "facs": ""})
     
-    # Create the <p> element and add the <lb break="yes"/> inside it first
+    # Create the <p> element
     p = ET.SubElement(div_letter, "p")
-    lb = ET.SubElement(p, "lb", {"break": "yes"})
 
-    # Extract letter text after the <ML> tag and add it as text within the <p> element
+    # Extract letter text after the <ML> tag and add it with line breaks within the <p> element
     letter_text = extract_letter_text(text)
-    
-    # Append the letter text to the <p> tag as its content
     if letter_text:
-        lb.tail = letter_text
+        add_letter_text_with_line_breaks(p, letter_text)
 
     closer = ET.SubElement(div_letter, "closer")
     ET.SubElement(closer, "signed")
@@ -116,6 +113,20 @@ def create_xml_template(text):
     reparsed = minidom.parseString(rough_string)
     return reparsed.toprettyxml(indent="  ", encoding="UTF-8")
 
+def add_letter_text_with_line_breaks(p, letter_text):
+    # Split the text into lines
+    lines = letter_text.splitlines()
+
+    # Iterate through the lines
+    for i, line in enumerate(lines):
+        if i > 0:
+            # Add an <lb break="yes"/> tag before each new line (except the first one)
+            lb = ET.SubElement(p, "lb", {"break": "yes"})
+            lb.tail = line
+        else:
+            # For the first line, directly set it as text
+            p.text = line
+            
 def extract_tag(tag, text):
     patterns = {
         'F': "<F\s+(.*?)>",
@@ -214,6 +225,7 @@ def extract_letter_text(text):
         return letter_text
     else:
         return ""
+
 
 def process_tag_T(text, parent_element):
     content = extract_tag('T', text)
