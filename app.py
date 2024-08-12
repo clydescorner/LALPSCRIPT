@@ -66,6 +66,7 @@ def create_xml_template(text):
     process_tag_G1(text, textClass)
     process_tag_G2(text, textClass)
     process_tag_CF(text, textClass)
+    process_tag_CO(text, textClass)
 
     # handNotes
     handNotes = ET.SubElement(profileDesc, "handNotes")
@@ -254,6 +255,62 @@ def process_tag_CF(text, parent_element):
     for key, value in mappings.items():
         if key in content:
             ET.SubElement(parent_element, "catRef", {"scheme": "gen:LALP_letter_types", "target": value})
+            
+def process_tag_CO(text, parent_element):
+    content = extract_tag('CO', text).lower()
+    mappings = {
+       "application pending": "gen:CO_APPLICATION_PENDING",
+       "relief: money": "gen:CO_RELIEF_MONEY",
+       "relief: rent": "gen:CO_RELIEF_RENT",
+       "relief: clothes": "gen:CO_RELIEF_CLOTHES",
+       "relief: food": "gen:CO_RELIEF_FOOD",
+       "relief: coal": "gen:CO_RELIEF_COAL",
+       "relief: assistance": "gen:CO_RELIEF_ASSISTANCE",
+       "relief": "gen:CO_RELIEF",
+       "payment halt": "gen:CO_PAYMENT_HALT",
+       "payment increase": "gen:CO_PAYMENT_INCREASE",
+       "payment modality": "gen:CO_PAYMENT_MODALITY",
+       "payment pending/delayed": "gen:CO_PAYMENT_PENDING",
+       "employment": "gen:CO_EMPLOYMENT",
+       "certificate": "gen:CO_CERTIFICATE",
+       "return to parish": "gen:CO_RETURN_PARISH",
+       "attendance in person": "gen:CO_ATTENDANCE",
+       "removal to parish": "gen:CO_REMOVAL",
+       "pass": "gen:CO_PASS",
+       "account": "gen:CO_ACCOUNT",
+       "applicant: situation": "gen:CO_APPLICANT_SITUATION",
+       "applicant: health": "gen:CO_APPLICANT_HEALTH",
+       "legal action": "gen:CO_LEGAL_ACTION",
+       "release from prison": "gen:CO_PRISON_RELEASE",
+       "settlement": "gen:CO_SETTLEMENT",
+       "correspondence": "gen:CO_CORRESPONDENCE",
+       "debt": "gen:CO_DEBT",
+       "child support": "gen:CO_CHILD_SUPPORT",
+       "other": "gen:CO_OTHER"
+    }
+
+    # Split content by commas and strip whitespace
+    components = [component.strip() for component in content.split(",")]
+
+    # Track which general keys have specific matches
+    specific_matched_keys = set()
+
+    # First pass: Add specific matches and track the general keys they belong to
+    for component in components:
+        for key, value in mappings.items():
+            if key in component:
+                if ":" in key:
+                    # This is a specific key, so add it and mark the general key
+                    ET.SubElement(parent_element, "catRef", {"scheme": "gen:LALP_letter_types", "target": value})
+                    general_key = key.split(":")[0].strip()
+                    specific_matched_keys.add(general_key)
+                break  # Stop after first match within this component
+
+    # Second pass: Add general matches if they weren't covered by specific ones
+    for component in components:
+        general_key = component.split(":")[0].strip()
+        if general_key in mappings and general_key not in specific_matched_keys:
+            ET.SubElement(parent_element, "catRef", {"scheme": "gen:LALP_letter_types", "target": mappings[general_key]})
 
 @app.route('/')
 def index():
