@@ -74,12 +74,18 @@ def create_xml_template(text):
     body = ET.SubElement(text_element, "body")
     ET.SubElement(body, "div", {"type": "address"})
     div_letter = ET.SubElement(body, "div", {"type": "letter", "facs": ""})
-    ET.SubElement(div_letter, "pb", {"facs": "", "break": "yes"})
-    opener = ET.SubElement(div_letter, "opener")
-    ET.SubElement(opener, "dateline")
-    ET.SubElement(opener, "salute")
+    
+    # Create the <p> element and add the <lb break="yes"/> inside it first
     p = ET.SubElement(div_letter, "p")
-    ET.SubElement(p, "lb", {"break": "yes"})
+    lb = ET.SubElement(p, "lb", {"break": "yes"})
+
+    # Extract letter text after the <ML> tag and add it as text within the <p> element
+    letter_text = extract_letter_text(text)
+    
+    # Append the letter text to the <p> tag as its content
+    if letter_text:
+        lb.tail = letter_text
+
     closer = ET.SubElement(div_letter, "closer")
     ET.SubElement(closer, "signed")
     postscript = ET.SubElement(div_letter, "postscript")
@@ -133,6 +139,22 @@ def extract_tag(tag, text):
     pattern = patterns.get(tag, "")
     match = re.search(pattern, text)
     return match.group(1) if match else ""
+
+
+def extract_letter_text(text):
+    # Find the position of the <ML> tag
+    ml_tag = "<ML"
+    start_pos = text.find(ml_tag)
+
+    if start_pos != -1:
+        # Find the end of the <ML> tag
+        end_ml_tag = text.find(">", start_pos) + 1
+        
+        # Extract the text after the <ML> tag
+        letter_text = text[end_ml_tag:].strip()
+        return letter_text
+    else:
+        return ""
 
 def process_tag_T(text, parent_element):
     content = extract_tag('T', text)
