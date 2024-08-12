@@ -24,9 +24,11 @@ def create_xml_template(text):
     idno_pub = ET.SubElement(publicationStmt, "idno")
     idno_pub.text = extract_tag('F', text)
 
+ 
     # notesStmt
     notesStmt = ET.SubElement(fileDesc, "notesStmt")
-    ET.SubElement(notesStmt, "note")
+    ET.SubElement(notesStmt, "note")  # You can remove this line if it's a placeholder
+    
     # Add <note> tags for <MF> and <MI> if content is not "X"
     insert_note_if_not_x(notesStmt, "MF", text)
     insert_note_if_not_x(notesStmt, "MI", text)
@@ -45,7 +47,12 @@ def create_xml_template(text):
     correspAction_sent = ET.SubElement(correspDesc, "correspAction", {"type": "sent"})
     ET.SubElement(correspAction_sent, "persName", {"ref": "", "role": "applicant"})
     ET.SubElement(correspAction_sent, "settlement", {"ref": ""})
-    ET.SubElement(correspAction_sent, "date", {"when": extract_tag('D', text), "cert": "", "evidence": ""})
+    
+    # Extract and format the date for <D> tag
+    date_value = extract_tag('D', text)
+    formatted_date = format_date(date_value)  # Format the date
+    ET.SubElement(correspAction_sent, "date", {"when": formatted_date, "cert": "", "evidence": ""})
+
     correspAction_received = ET.SubElement(correspDesc, "correspAction", {"type": "received"})
     ET.SubElement(correspAction_received, "persName", {"ref": "", "role": ""})
     ET.SubElement(correspAction_received, "settlement", {"ref": ""})
@@ -143,12 +150,15 @@ def extract_tag(tag, text):
     match = re.search(pattern, text)
     return match.group(1) if match else ""
 
+def format_date(date_str):
+    # Convert "yyyy mm dd" to "yyyy-mm-dd"
+    return date_str.replace(" ", "-")
+
 def insert_note_if_not_x(notesStmt, tag, text):
     content = extract_tag(tag, text)
     if content and content != "X":
         note = ET.SubElement(notesStmt, "note")
         note.text = content
-
 
 def extract_letter_text(text):
     # Find the position of the <ML> tag
@@ -244,8 +254,6 @@ def process_tag_CF(text, parent_element):
     for key, value in mappings.items():
         if key in content:
             ET.SubElement(parent_element, "catRef", {"scheme": "gen:LALP_letter_types", "target": value})
-
-
 
 @app.route('/')
 def index():
