@@ -4,7 +4,7 @@ from xml.dom import minidom
 import re
 
 app = Flask(__name__)
-
+# can nico modify this
 def create_xml_template(text):
     root = ET.Element("TEI", {
         "xml:id": "TEI_ujl_fxt_s1c",
