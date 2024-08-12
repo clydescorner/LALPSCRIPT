@@ -27,6 +27,9 @@ def create_xml_template(text):
     # notesStmt
     notesStmt = ET.SubElement(fileDesc, "notesStmt")
     ET.SubElement(notesStmt, "note")
+    # Add <note> tags for <MF> and <MI> if content is not "X"
+    insert_note_if_not_x(notesStmt, "MF", text)
+    insert_note_if_not_x(notesStmt, "MI", text)
 
     # sourceDesc and msIdentifier setup, with dynamic repository and idno based on tags Q and U
     sourceDesc = ET.SubElement(fileDesc, "sourceDesc")
@@ -139,6 +142,12 @@ def extract_tag(tag, text):
     pattern = patterns.get(tag, "")
     match = re.search(pattern, text)
     return match.group(1) if match else ""
+
+def insert_note_if_not_x(notesStmt, tag, text):
+    content = extract_tag(tag, text)
+    if content and content != "X":
+        note = ET.SubElement(notesStmt, "note")
+        note.text = content
 
 
 def extract_letter_text(text):
